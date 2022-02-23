@@ -3,39 +3,40 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import {Link, useHistory} from "react-router-dom";
+import {Link, Redirect, useHistory} from "react-router-dom";
 
 import {validation} from "./validation"
 import "./style.scss"
-import {Context} from "../App";
+
+import {app} from "../firebase"
+import AuthContext from "../Auth/auth"
 
 const Login = (props) => {
 
   const history2 =useHistory()
 
-  const { setToken,}= useContext(Context)
-
   const [loginUser, setLoginUser] = useState({
-    userName: "",
+    email: "",
     password: "",
 
   })
 
   const [loginError, setLoginError] = useState({
-    userNameError: false,
+    emailError: false,
     passwordError: false,
   })
+
 
   const handleChangeRegistrationInfo = (type) => (e) => {
     switch (type) {
 
-      case "userName" :
-        setLoginUser({...loginUser, userName: e.target.value});
+      case "email" :
+        setLoginUser({...loginUser, email: e.target.value});
 
-        validation(loginUser["userName"], "userName") ?
-          setLoginError({...loginError, userNameError: false})
+        validation(loginUser["email"], "email") ?
+          setLoginError({...loginError, emailError: false})
           :
-          setLoginError({...loginError, userNameError: true});
+          setLoginError({...loginError, emailError: true});
         break;
 
       case "password" :
@@ -54,15 +55,27 @@ const Login = (props) => {
   }
 
 
-  const handleLogin =()=>{
+  const handleLogin = async()=>{
 
-  if(  JSON.parse(localStorage.getItem("users")).findIndex(el =>{
-    return( el.userName == loginUser.userName && el.password == loginUser.password)
-  })+1){
-    setToken(true);
-    history2.push("/dashboard")
+    if(loginUser.email && loginUser.password){
+      try{
+         await app.auth().signInWithEmailAndPassword(loginUser.email.trim(), loginUser.password)
+             
+         history2.push("/dashboard")
+         return true
+      }catch(err){
+       console.error(err)
+      }
+       
+    
+   }
+   
   }
-  }
+
+  // const {user} = useContext(AuthContext)
+  // if(user){
+  //   return <Redirect to = "/dashboard"/>
+  // }
 
   return (
     <Box
@@ -73,9 +86,9 @@ const Login = (props) => {
       <div className="registrationContainer">
 
 
-        <TextField error={loginError.userNameError} id="standard-basic" label="User name" variant="standard"
-                   onChange={handleChangeRegistrationInfo("userName")}
-                   helperText={loginError.userNameError ? "User name user name must be 3 or more characters" :""}
+        <TextField error={loginError.userNameError} id="standard-basic" label="Email" variant="standard"
+                   onChange={handleChangeRegistrationInfo("email")}
+                   helperText={loginError.userNameError ? "invalid email address" :""}
 
         />
 

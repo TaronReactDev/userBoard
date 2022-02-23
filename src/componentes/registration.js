@@ -11,11 +11,14 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import {validation} from "./validation"
 import "./style.scss"
-import {Context} from "../App"
+import {app} from "../firebase"
 
 const Registration = (props) => {
 
-  const {users, setUsers}= useContext(Context)
+  const history = useHistory()
+
+//console.log(app);
+
   const [registrationUser, setRegistrationUser] = useState({
     firstName: "",
     lastName: "",
@@ -37,7 +40,6 @@ const Registration = (props) => {
     confirmPasswordError: false,
 
   })
- const history = useHistory()
 
   const handleChangeRegistrationInfo = (type) => (e) => {
     switch (type) {
@@ -109,14 +111,18 @@ const Registration = (props) => {
 
     }
   }
-  const handleRegistration = () =>{
+  const handleRegistration =  () =>{
     for(let key in registrationUser ){
    if(registrationUser[key]){
      for(let key in registrationError ){
        if(!registrationError[key]){
-         let usersHistory = [...users, registrationUser]
-         setUsers(usersHistory)
+        
+    try{
+      app.auth().createUserWithEmailAndPassword(registrationUser.email, registrationUser.password)
          history.push("/")
+         return true
+    }catch(err){
+      console.log(err)}
        }
      }
    }
